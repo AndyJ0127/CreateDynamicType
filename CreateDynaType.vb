@@ -327,6 +327,59 @@ Public Class CreateDynaType
 
     End Sub
 
+    'Get_Json2Object_Async 01
+    ''' <summary>
+    ''' 非同步方法。直接建立DTO物件並且依據目標網址取得遠端JSON資料後，直接轉換並傳回泛型的物件資料
+    ''' </summary>
+    ''' <param name="typeName">指定要</param>
+    ''' <param name="jsonTargetURL">遠端JSON資源的網址</param>
+    ''' <param name="genericType">傳入要轉換的泛型型別。例如：GetType(IList(Of)) or GetType(List(Of)) or GetType(IEnumalbe(Of))</param>
+    ''' <param name="cacheMinTime"></param>
+    ''' <param name="nameSpaceName"></param>
+    ''' <param name="parentType"></param>
+    ''' <param name="interfaceTypes"></param>
+    ''' <param name="propertyNames"></param>
+    ''' <param name="propertyTypes"></param>
+    ''' <param name="customAttributeObj"></param>
+    ''' <param name="customAttributeValues"></param>
+    ''' <returns>傳回已經內含JSON資料的泛型集合物件</returns>
+    Public Async Function Get_Json2Object_Async(typeName As String,
+                                                jsonTargetURL As String,
+                                                genericType As Type,
+                                                Optional cacheMinTime As Integer = 10,
+                                                Optional nameSpaceName As String = "",
+                                                Optional parentType As System.Type = Nothing,
+                                                Optional interfaceTypes() As System.Type = Nothing,
+                                                Optional propertyNames As String = "",
+                                                Optional propertyTypes As String = "",
+                                                Optional customAttributeObj As Object = Nothing,
+                                                Optional customAttributeValues As String = "") As Tasks.Task(Of Object)
+
+
+        Dim tb As TypeBuilder = Me.CreatTypeBuilder(typeName:=typeName,
+                                                    nameSpaceName:=nameSpaceName,
+                                                    parentType:=parentType,
+                                                    interfaceTypes:=interfaceTypes,
+                                                    propertyNames:=propertyNames,
+                                                    propertyTypes:=propertyTypes,
+                                                    customAttributeObj:=customAttributeObj,
+                                                    customAttributeValues:=customAttributeValues)
+
+
+        Dim genericTbType As Type = Me.Create_GenericCollectionType(tb:=tb, genericType:=genericType)
+
+        Dim methodInfo As MethodInfo = Me.GetJsonCache.GetType().GetMethod("GetJsonCacheAsync")
+
+        Dim genericMethodInfo As MethodInfo = methodInfo.MakeGenericMethod(genericTbType)
+
+        'GetJsonCacheXXXXX(cacheName As String, targetURI As String, cacheMinTime As Integer)
+        Dim listResults As Object = Await genericMethodInfo.Invoke(obj:=Me.GetJsonCache,
+                                                                   parameters:=New Object() {typeName, jsonTargetURL, cacheMinTime})
+
+        Return listResults
+
+    End Function
+
     'Get_Json2Object_Async 02
     ''' <summary>
     ''' 非同步方法。直接建立DTO物件並且依據目標網址取得遠端JSON資料後，直接轉換並傳回泛型的物件資料
@@ -375,6 +428,58 @@ Public Class CreateDynaType
         'GetJsonCacheXXXXX(cacheName As String, targetURI As String, cacheMinTime As Integer)
         Dim listResults As Object = Await genericMethodInfo.Invoke(obj:=Me.GetJsonCache,
                                                                    parameters:=New Object() {typeName, jsonTargetURL, cacheMinTime})
+
+        Return listResults
+
+    End Function
+
+    'Get_Json2Object  03
+    ''' <summary>
+    ''' 同步方法。直接建立DTO物件並且依據目標網址取得遠端JSON資料後，直接轉換並傳回泛型的物件資料
+    ''' </summary>
+    ''' <param name="typeName"></param>
+    ''' <param name="jsonTargetURL"></param>
+    ''' <param name="genericType"></param>
+    ''' <param name="cacheMinTime"></param>
+    ''' <param name="nameSpaceName"></param>
+    ''' <param name="parentType"></param>
+    ''' <param name="interfaceTypes"></param>
+    ''' <param name="propertyNames"></param>
+    ''' <param name="propertyTypes"></param>
+    ''' <param name="customAttributeObj"></param>
+    ''' <param name="customAttributeValues"></param>
+    ''' <returns></returns>
+    Public Function Get_Json2Object(typeName As String,
+                                    jsonTargetURL As String,
+                                    genericType As Type,
+                                    Optional cacheMinTime As Integer = 10,
+                                    Optional nameSpaceName As String = "",
+                                    Optional parentType As System.Type = Nothing,
+                                    Optional interfaceTypes() As System.Type = Nothing,
+                                    Optional propertyNames As String = "",
+                                    Optional propertyTypes As String = "",
+                                    Optional ByRef customAttributeObj As Object = Nothing,
+                                    Optional customAttributeValues As String = "") As Object
+
+
+        Dim tb As TypeBuilder = Me.CreatTypeBuilder(typeName:=typeName,
+                                                    nameSpaceName:=nameSpaceName,
+                                                    parentType:=parentType,
+                                                    interfaceTypes:=interfaceTypes,
+                                                    propertyNames:=propertyNames,
+                                                    propertyTypes:=propertyTypes,
+                                                    customAttributeObj:=customAttributeObj,
+                                                    customAttributeValues:=customAttributeValues)
+
+        Dim genericTbType As Type = Me.Create_GenericCollectionType(tb:=tb, genericType:=genericType)
+
+        Dim methodInfo As MethodInfo = Me.GetJsonCache.GetType().GetMethod("GetJsonCache")
+
+        Dim genericMethodInfo As MethodInfo = methodInfo.MakeGenericMethod(genericTbType)
+
+        'GetJsonCacheXXXXX(cacheName As String, targetURI As String, cacheMinTime As Integer)
+        Dim listResults = genericMethodInfo.Invoke(obj:=Me.GetJsonCache,
+                                                   parameters:=New Object() {typeName, jsonTargetURL, cacheMinTime})
 
         Return listResults
 
